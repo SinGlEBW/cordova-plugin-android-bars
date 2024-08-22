@@ -24,10 +24,10 @@ It is also possible to install via repo url directly
 ```
 
 #### config.xml
-<!-- 
-   If desired, set the default settings. Usually, the plugin is loaded to manage the dynamic settings of the theme, so there is not much point in static parameters. But if you want, you are provided   with many parameters in the amount of ONE :)
 
-        <preference name="AndroidBarsFullScreen" value="true" /> -->
+   If desired, set the default settings. Usually, the plugin is loaded to manage the dynamic settings of the theme, so there is not much point in static parameters. But if you want, you are provided   with many parameters in the amount of ONE :)  Its default value is true
+
+        <preference name="AndroidBarsFullScreen" value="true" />
       
 
 ### Android Quirks

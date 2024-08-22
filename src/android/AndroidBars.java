@@ -87,6 +87,8 @@ public class AndroidBars extends CordovaPlugin{
 
     activity.runOnUiThread(() -> {
       //Reset Request after Splash
+      setFullScreen(preferences.getBoolean("AndroidBarsFullScreen", true));
+
       Utils.setTimeout(() -> {
         TIMEOUT_DELAY = 3;
       }, (int) (TIMEOUT_DELAY * 1.5));
