@@ -1,0 +1,21 @@
+{
+ "name": "cordova-plugin-android-bars",
+ "version": "1.0.47",
+ "description": "",
+ "scripts": {
+  "publish": "git push && npm publish"
+ },
+ "types": "./types/index.d.ts",
+ "cordova": {
+  "id": "cordova-plugin-android-bars",
+  "platforms": [
+   "android"
+  ]
+ },
+ "keywords": [
+  "ecosystem:cordova",
+  "cordova-android"
+ ],
+ "author": "SinGlEBW",
+ "license": "ISC"
+}
