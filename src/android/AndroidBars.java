@@ -1,6 +1,7 @@
 package ru.cordova.android.bars;
 
 
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Build;
 import android.view.View;
@@ -54,7 +55,7 @@ public class AndroidBars extends CordovaPlugin{
   private List<String> listBooleanState = Arrays.asList(ACTION_FULL_SCREEN, ACTION_TOGGLE_COLOR_ICONS, ACTION_ACTIVE_IMMERSIVE_MODE);
   private JSONObject stateValueBoolean = new JSONObject();
   //В будущем пожно пополнять listNameEvents
-  private List<String> listNameEvents = Arrays.asList("watchKeyboard");
+  private List<String> listNameEvents = Arrays.asList("watchKeyboard", "watchHeightBars");
   Map<String, CallbackContext> listCurrentEvents = new HashMap<>();
   Map<String, JSONObject> storeInfoByActiveEvents = new HashMap<>();
   private JSONObject stateControlForSetInterval = new JSONObject();
@@ -114,35 +115,16 @@ public class AndroidBars extends CordovaPlugin{
 
       ViewCompat.setOnApplyWindowInsetsListener(window.getDecorView().getRootView(), (view, wInsets) -> {
 
-        int idKeyboard = WindowInsetsCompat.Type.ime();
-        boolean isVisibleKeyboard = wInsets.isVisible(idKeyboard);
-        int imeHeight = wInsets.getInsets(idKeyboard).bottom;
+        boolean is = wInsets.isVisible(WindowInsetsCompat.Type.ime());
+        LOG.d("FFFF", String.valueOf(is));
 
         if(listCurrentEvents.get("watchKeyboard") != null){
-          //Active Event
-          CallbackContext cbKeyboard = listCurrentEvents.get("watchKeyboard");
-          JSONObject keyboardInfoState = storeInfoByActiveEvents.get("watchKeyboard");
-          JSONObject payloadInfo = new JSONObject();
-          try{
-            int heightKeyboardState = (int) keyboardInfoState.get("height");
-
-            if(imeHeight != 0){
-              payloadInfo.put("action", "open");
-              payloadInfo.put("height", imeHeight);
-            } else {
-              payloadInfo.put("action", "close");
-              payloadInfo.put("height", 0);
-            }
-
-            if(heightKeyboardState != payloadInfo.getInt("height")){
-              keyboardInfoState.put("action", payloadInfo.getString("action"));
-              keyboardInfoState.put("height", payloadInfo.getInt("height"));
-              watchKeyboard(cbKeyboard, payloadInfo);
-            }
-          }catch(JSONException e){
-            throw new RuntimeException(e);
-          }
+          watchKeyboard(wInsets);
         }
+        if(listCurrentEvents.get("watchHeightBars") != null){
+          watchHeightBars(wInsets);
+        }
+
 
         LOG.d(TAG, "SetOnApplyWindowInsetsListener");
         Insets iGestures = wInsets.getInsets(WindowInsetsCompat.Type.systemGestures());
@@ -462,31 +444,6 @@ public class AndroidBars extends CordovaPlugin{
     }
   }
 
-  boolean getVisibleBars(){
-    WindowInsetsCompat wInsets = getWindowInsetsCompat();
-    boolean isVisibleNavBar = wInsets.isVisible(WindowInsetsCompat.Type.navigationBars());
-    boolean isVisibleStatusBar = wInsets.isVisible(WindowInsetsCompat.Type.statusBars());
-    return isVisibleNavBar & isVisibleStatusBar;
-  }
-
-  private void configClickShowingBars(String mode){
-    WindowInsetsControllerCompat wInsetsController = getInsetsController();
-    if(mode.equals("TIME_HIDE")){
-      wInsetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-    }
-    if(mode.equals("STATIC_HIDE")){
-      wInsetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_BARS_BY_TOUCH);
-    }
-  }
-
-  private JSONObject getHeightKeyboard() throws JSONException{
-
-    WindowInsets insets = getWindowInsets();
-    JSONObject payload = new JSONObject();
-
-
-    return payload;
-  }
 
   private void showKeyboard(){
     int idKeyboard = WindowInsetsCompat.Type.ime();
@@ -516,9 +473,72 @@ public class AndroidBars extends CordovaPlugin{
     return insetsController.isAppearanceLightStatusBars();
   }
 
-  private void watchKeyboard(CallbackContext cb, JSONObject info){
+  private void watchKeyboard(WindowInsetsCompat wInsets){
     LOG.d("watchKeyboard", "");
-    Utils.sendResult(cb, info, true);
+    String nameEvent = "watchKeyboard";
+    int idKeyboard = WindowInsetsCompat.Type.ime();
+//    int imeHeight = wInsets.getInsets(idKeyboard).bottom;
+    //Active Event
+    CallbackContext cb = listCurrentEvents.get(nameEvent);
+    JSONObject keyboardInfoState = storeInfoByActiveEvents.get(nameEvent);
+    JSONObject payloadInfo = new JSONObject();
+    try{
+      int heightKeyboardState = (int) keyboardInfoState.get("height");
+      int imeHeight = wInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
+
+      if(imeHeight != 0){
+        Resources resources = window.getDecorView().getResources();
+
+        payloadInfo.put("action", "open");
+        payloadInfo.put("height", Utils.dpToPx(resources, imeHeight));
+      } else {
+        payloadInfo.put("action", "close");
+        payloadInfo.put("height", 0);
+      }
+
+      if(heightKeyboardState != payloadInfo.getInt("height")){
+        keyboardInfoState.put("action", payloadInfo.getString("action"));
+        keyboardInfoState.put("height", payloadInfo.getInt("height"));
+        Utils.sendResult(cb, payloadInfo, true);
+      }
+    }catch(JSONException e){
+      throw new RuntimeException(e);
+    }
+
+
+  }
+
+  private void watchHeightBars(WindowInsetsCompat wInsets){
+    String nameEvent = "watchHeightBars";
+
+    LOG.d(nameEvent, "");
+//    Utils.sendResult(cb, info, true);
+
+    int idStatusBar = WindowInsetsCompat.Type.statusBars();
+    int idNavBar = WindowInsetsCompat.Type.navigationBars();
+    boolean isVisibleKeyboard = wInsets.isVisible(idStatusBar & idNavBar);
+    int heightStatusBar = wInsets.getInsets(idStatusBar).top;
+    int heightNavBar = wInsets.getInsets(idNavBar).bottom;
+    //Active Event
+    CallbackContext cb = listCurrentEvents.get(nameEvent);
+    JSONObject systemBarsInfoState = storeInfoByActiveEvents.get(nameEvent);
+    JSONObject payloadInfo = new JSONObject();
+    try{
+      int heightStatusBarState = (int) systemBarsInfoState.get("heightStatus");
+      if(heightStatusBarState == 0 & heightStatusBar != 0){
+        Resources resources = window.getDecorView().getResources();
+
+        systemBarsInfoState.put("heightStatus", Utils.dpToPx(resources, heightStatusBar));
+        systemBarsInfoState.put("heightNav", Utils.dpToPx(resources, heightNavBar));
+        Utils.sendResult(cb, systemBarsInfoState, true);
+      }
+
+
+    }catch(JSONException e){
+      throw new RuntimeException(e);
+    }
+
+
   }
 
   private interface Interface_P{
@@ -536,10 +556,39 @@ public class AndroidBars extends CordovaPlugin{
       }catch(JSONException e){
         throw new RuntimeException(e);
       }
-
+    }
+    if(nameEvent.equals("watchHeightBars")){
+      JSONObject barsPayload = new JSONObject();
+      try{
+        barsPayload.put("heightStatus", 0);
+        barsPayload.put("heightNav", 0);
+        storeInfoByActiveEvents.put("watchHeightBars", barsPayload);
+      }catch(JSONException e){
+        throw new RuntimeException(e);
+      }
     }
   }
 
+
+  public int getStatusBarHeight(){
+    Resources resources = window.getDecorView().getResources();
+    int statusBarId = resources.getIdentifier("status_bar_height", "dimen", "android");
+    if(statusBarId > 0){
+      return resources.getDimensionPixelSize(statusBarId);
+    } else {
+      return 0;
+    }
+  }
+
+    public int getNavigationBarHeight()  {
+    Resources resources = window.getDecorView().getResources();
+    int navigationBarId = resources.getIdentifier("navigation_bar_height", "dimen", "android");
+    if (navigationBarId > 0)
+    {
+      return resources.getDimensionPixelSize(navigationBarId);
+    }
+    return 0;
+  }
   private void removeStateByEvent(String nameEvent){
     if(nameEvent.equals("watchKeyboard")){
 

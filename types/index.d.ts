@@ -1,6 +1,6 @@
 /// <reference types="cordova" />
 
-type NameEvents_OR = 'watchKeyboard';//'keyboardParam' | 'keyboardShow' | 'keyboardHide';
+type NameEvents_OR = 'watchKeyboard' | 'watchHeightBars';
 interface AndroidBars {
   setFullScreen(isFull):void;
   bgColorAll(hex: string):void;

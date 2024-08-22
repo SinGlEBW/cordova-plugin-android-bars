@@ -19,7 +19,7 @@ function validateHex (hex = '') {
   }
 
  
-  if(validHex.length > 9){
+  if(validHex.length >= 9){
     validHex.length = 9
     validHex = [
       validHex[0], validHex[8], validHex[7], 

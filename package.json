@@ -1,6 +1,6 @@
 {
  "name": "cordova-plugin-android-bars",
- "version": "1.0.47",
+ "version": "1.0.48",
  "description": "",
  "scripts": {
   "publish": "git push && npm publish"

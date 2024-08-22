@@ -46,7 +46,12 @@ List methods
     AndroidBars.on('watchKeyboard', ({action, height}) => {
 
     })
+    AndroidBars.on('watchHeightBars', ({heightStatus, heightNav}) => {
+
+    })
+
     AndroidBars.off('watchKeyboard')
+    AndroidBars.off('watchHeightBars')
 
 ```
 
