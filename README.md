@@ -43,15 +43,15 @@ List methods
     AndroidBars.setDarkIcon(is) // sets dark or light tones on icons in bars
     AndroidBars.setFullScreen(is) //controls the size of the background. by default, it is not fullScreen (ps. if other plugins do not disrupt the operation)
     AndroidBars.setActiveImmersiveMode(is)//enables or disables the status and navigation panels. When enabled, the default state will be returned, which can be initially set via setFullScreen.
-    AndroidBars.on('watchKeyboard', ({action, height}) => {
+    AndroidBars.getHeightSystemBats(({heightStatus, heightNav}) => {
 
     })
-    AndroidBars.on('watchHeightBars', ({heightStatus, heightNav}) => {
+    AndroidBars.on('watchKeyboard', ({action, height}) => {
 
     })
 
     AndroidBars.off('watchKeyboard')
-    AndroidBars.off('watchHeightBars')
+   
 
 ```
 

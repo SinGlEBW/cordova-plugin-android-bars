@@ -1,6 +1,5 @@
 package ru.cordova.android.bars;
 
-
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Build;
@@ -10,9 +9,7 @@ import android.view.WindowInsets;
 import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 import androidx.core.graphics.Insets;
-
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -28,9 +25,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 public class AndroidBars extends CordovaPlugin{
@@ -38,6 +33,7 @@ public class AndroidBars extends CordovaPlugin{
 
   private AppCompatActivity activity;
   private Window window;
+  private Events eventsBars = new Events();
 
   private static final String ACTION_ON = "on";
   private static final String ACTION_OFF = "off";
@@ -47,6 +43,7 @@ public class AndroidBars extends CordovaPlugin{
   private static final String ACTION_FULL_SCREEN = "setFullScreen";
   private static final String ACTION_TOGGLE_COLOR_ICONS = "setDarkIcon";
   private static final String ACTION_ACTIVE_IMMERSIVE_MODE = "setActiveImmersiveMode";
+  private static final String ACTION_GET_HEIGHT_SYSTEM_BARS = "getHeightSystemBars";
 
 
   private List<String> listStringState = Arrays.asList(ACTION_BG_COLOR_ALL, ACTION_BG_COLOR_STATUS_BAR, ACTION_BG_COLOR_NAV_BAR);
@@ -54,20 +51,13 @@ public class AndroidBars extends CordovaPlugin{
 
   private List<String> listBooleanState = Arrays.asList(ACTION_FULL_SCREEN, ACTION_TOGGLE_COLOR_ICONS, ACTION_ACTIVE_IMMERSIVE_MODE);
   private JSONObject stateValueBoolean = new JSONObject();
-  //В будущем пожно пополнять listNameEvents
-  private List<String> listNameEvents = Arrays.asList("watchKeyboard", "watchHeightBars");
-  Map<String, CallbackContext> listCurrentEvents = new HashMap<>();
-  Map<String, JSONObject> storeInfoByActiveEvents = new HashMap<>();
-  private JSONObject stateControlForSetInterval = new JSONObject();
+
 
   private int DELAY_SPLASH = 2;
   private int TIMEOUT_DELAY = 2;
   private double TIME_REACTION_AFTER_SPLASH = 1.2;//уменьшая увеличиваем задержку отработки свойств после сплешь скрина
-  private int heightKeyboard = 0;
   private int limitIntervalMillisecond = 3000;
   private CallbackContext callbackContext = null;
-
-//  private CallbackContext watchSizingBars = null;
 
   /**
    * Sets the context of the Command. This can then be used to do things like
@@ -86,14 +76,6 @@ public class AndroidBars extends CordovaPlugin{
     TIMEOUT_DELAY = (int) (DELAY_SPLASH / TIME_REACTION_AFTER_SPLASH);// /  1.2
 
     activity.runOnUiThread(() -> {
-      //Reset Request after Splash
-      setFullScreen(preferences.getBoolean("AndroidBarsFullScreen", true));
-
-      Utils.setTimeout(() -> {
-        TIMEOUT_DELAY = 3;
-      }, (int) (TIMEOUT_DELAY * 1.5));
-
-
       String defaultColor = "#000000";
       try{
         for(String key : listStringState) stateValueString.put(key, defaultColor);
@@ -110,51 +92,34 @@ public class AndroidBars extends CordovaPlugin{
       }
 
 
-//      WindowManager.LayoutParams params = window.getAttributes();
-//      params.screenBrightness = 1F;
-//      window.setAttributes(params);
+      try{
+        boolean isFullScreenInit = preferences.getBoolean("AndroidBarsFullScreen", true);
+        stateValueBoolean.put(ACTION_FULL_SCREEN, isFullScreenInit);
+        setFullScreen(isFullScreenInit);
+      }catch(JSONException e){
+        throw new RuntimeException(e);
+      }
+
+      new Utils().setTimeout(activity, () -> {
+        TIMEOUT_DELAY = 3;
+      }, (int) (TIMEOUT_DELAY * 1.5));
+
 
 
       ViewCompat.setOnApplyWindowInsetsListener(window.getDecorView().getRootView(), (view, wInsets) -> {
-
-        boolean is = wInsets.isVisible(WindowInsetsCompat.Type.ime());
-        LOG.d("FFFF", String.valueOf(is));
-
-        if(listCurrentEvents.get("watchKeyboard") != null){
-          watchKeyboard(wInsets);
-        }
-        if(listCurrentEvents.get("watchHeightBars") != null){
-          watchHeightBars(wInsets);
-        }
-
-
-        LOG.d(TAG, "SetOnApplyWindowInsetsListener");
         Insets iGestures = wInsets.getInsets(WindowInsetsCompat.Type.systemGestures());
         Insets iBars = wInsets.getInsets(WindowInsetsCompat.Type.systemBars());
 
+        if(eventsBars.listCurrentEvents.get("watchKeyboard") != null){
+          watchKeyboard(wInsets);
+        }
 
-//        v.setPadding(iBars.left, iBars.top, iBars.right, iBars.bottom);
-
-//        try {
-//          String colorNav = colorsState.getString(ACTION_BG_COLOR_NAV_BAR);
-//          int f = window.getStatusBarColor();
-//          int d = Color.parseColor(colorNav);
-//          if(f != d ){
-//            setBgColorNavBar(colorNav);
-//          }
-//        } catch (JSONException e) {
-//          throw new RuntimeException(e);
-//        }
-//
-
-
+        LOG.d(TAG, "SetOnApplyWindowInsetsListener");
+//      v.setPadding(iBars.left, iBars.top, iBars.right, iBars.bottom);
         return ViewCompat.onApplyWindowInsets(view, wInsets);// ViewCompat.onApplyWindowInsets(v, wInsets);// WindowInsetsCompat.CONSUMED;//wInsets;//ViewCompat.onApplyWindowInsets(window.getDecorView().getRootView(), wInsets);
       });
-
-
     });
   }
-
 
   @Override
   public void pluginInitialize(){
@@ -165,6 +130,17 @@ public class AndroidBars extends CordovaPlugin{
   @Override
   public void onStart(){
     LOG.d(TAG, "onStart");
+    LOG.d(TAG, "isFlag: FLAG_FORCE_NOT_FULLSCREEN: " + isFlag(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN));
+    LOG.d(TAG, "isFlag: FLAG_TRANSLUCENT_STATUS: " + isFlag(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS));
+    LOG.d(TAG, "isFlag: FLAG_TRANSLUCENT_NAVIGATION: " + isFlag(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION));
+    LOG.d(TAG, "isFlag: FLAG_LAYOUT_NO_LIMITS: " + isFlag(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS));
+    LOG.d(TAG, "isFlag: FLAG_FULLSCREEN: " + isFlag(WindowManager.LayoutParams.FLAG_FULLSCREEN));
+    LOG.d(TAG, "isFlag: SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN: " + isFlag(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN));
+    LOG.d(TAG, "isFlag: SYSTEM_UI_FLAG_FULLSCREEN: " + isFlag(View.SYSTEM_UI_FLAG_FULLSCREEN));
+    LOG.d(TAG, "isFlag: SYSTEM_UI_FLAG_LAYOUT_STABLE : " + isFlag(View.SYSTEM_UI_FLAG_LAYOUT_STABLE));
+    LOG.d(TAG, "isFlag: BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE : " + isFlag(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE));
+    LOG.d(TAG, "isFlag: BEHAVIOR_SHOW_BARS_BY_TOUCH : " + isFlag(WindowInsetsControllerCompat.BEHAVIOR_SHOW_BARS_BY_TOUCH));
+    LOG.d(TAG, "isFlag: SYSTEM_UI_FLAG_LIGHT_STATUS_BAR : " + isFlag(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
   }
 
   @Override
@@ -172,7 +148,6 @@ public class AndroidBars extends CordovaPlugin{
     LOG.d(TAG, "onDestroy");
     ViewCompat.setOnApplyWindowInsetsListener(window.getDecorView(), null);
   }
-
 
   /**
    * Executes the request and returns PluginResult.
@@ -185,166 +160,135 @@ public class AndroidBars extends CordovaPlugin{
 
   @Override
   public boolean execute(final String action, final CordovaArgs args, final CallbackContext callbackContext){
-    this.callbackContext = callbackContext;
-    try{
-      stateControlForSetInterval.put(action, true);
-    }catch(JSONException e){
-      throw new RuntimeException(e);
-    }
-    LOG.d(TAG, "isFlag: FLAG_FORCE_NOT_FULLSCREEN: " + isFlag(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN));
-    LOG.d(TAG, "isFlag: FLAG_TRANSLUCENT_STATUS: " + isFlag(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS));
-    LOG.d(TAG, "isFlag: FLAG_TRANSLUCENT_NAVIGATION: " + isFlag(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION));
-    LOG.d(TAG, "isFlag: FLAG_LAYOUT_NO_LIMITS: " + isFlag(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS));
-    LOG.d(TAG, "isFlag: SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN: " + isFlag(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN));
-    LOG.d(TAG, "isFlag: SYSTEM_UI_FLAG_FULLSCREEN: " + isFlag(View.SYSTEM_UI_FLAG_FULLSCREEN));
-    LOG.d(TAG, "isFlag: SYSTEM_UI_FLAG_LAYOUT_STABLE : " + isFlag(View.SYSTEM_UI_FLAG_LAYOUT_STABLE));
-    LOG.d(TAG, "isFlag: BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE : " + isFlag(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE));
-    LOG.d(TAG, "isFlag: BEHAVIOR_SHOW_BARS_BY_TOUCH : " + isFlag(WindowInsetsControllerCompat.BEHAVIOR_SHOW_BARS_BY_TOUCH));
-    LOG.d(TAG, "isFlag: SYSTEM_UI_FLAG_LIGHT_STATUS_BAR : " + isFlag(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
     LOG.d(TAG, "execute (action): " + action);
-
-    /*
-     * Такая мысль: Возможно execute отрабатывает быстро и т.к. setTimeout из класса она перезатирает
-     * */
-    boolean isCurrentDarkIc = !((activity.getWindow().getDecorView().getSystemUiVisibility() & View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) != 0);
-    LOG.d("WERQ", "isCurrentDarkIcon (execute): " + isCurrentDarkIc);
+    this.callbackContext = callbackContext;
 
 
     switch(action){
       case ACTION_BG_COLOR_ALL:
-        Utils.setTimeout(() -> {
-          activity.runOnUiThread(() -> {
-            try{
-              String hexSystemBars = args.getString(0);
-              stateValueString.put(ACTION_BG_COLOR_ALL, hexSystemBars);
-              setBgColorAll(hexSystemBars);
-            }catch(JSONException ignore){
-              LOG.e(TAG, "Invalid hexString argument, use f.i. '#777777'");
-            }
-          });
+        new Utils().setTimeout(activity, () -> {
+          try{
+            String hexSystemBars = args.getString(0);
+            stateValueString.put(ACTION_BG_COLOR_ALL, hexSystemBars);
+            setBgColorAll(hexSystemBars);
+          }catch(JSONException ignore){
+            LOG.e(TAG, "Invalid hexString argument, use f.i. '#777777'");
+          }
         }, TIMEOUT_DELAY);
         return true;
 
       case ACTION_BG_COLOR_STATUS_BAR:
-        Utils.setTimeout(() -> {
-          activity.runOnUiThread(() -> {
-            try{
-              String hexStatusBars = args.getString(0);
-              stateValueString.put(ACTION_BG_COLOR_STATUS_BAR, hexStatusBars);
-              setBgColorStatusBar(hexStatusBars);
-            }catch(JSONException ignore){
-              LOG.e(TAG, "Invalid" + ACTION_BG_COLOR_STATUS_BAR);
-            }
-
-          });
+        new Utils().setTimeout(activity, () -> {
+          try{
+            String hexStatusBars = args.getString(0);
+            stateValueString.put(ACTION_BG_COLOR_STATUS_BAR, hexStatusBars);
+            setBgColorStatusBar(hexStatusBars);
+          }catch(JSONException ignore){
+            LOG.e(TAG, "Invalid" + ACTION_BG_COLOR_STATUS_BAR);
+          }
         }, TIMEOUT_DELAY);
         return true;
 
       case ACTION_BG_COLOR_NAV_BAR:
-
-        Utils.setTimeout(() -> {
-          cordova.getActivity().runOnUiThread(() -> {
-            try{
-              String hexColorNav = args.getString(0);
-              stateValueString.put(ACTION_BG_COLOR_NAV_BAR, hexColorNav);
-              setBgColorNavBar(hexColorNav);
-            }catch(JSONException ignore){
-              LOG.e(TAG, "Invalid hexString argument, use f.i. '#777777'");
-            }
-          });
+        new Utils().setTimeout(activity, () -> {
+          try{
+            String hexColorNav = args.getString(0);
+            stateValueString.put(ACTION_BG_COLOR_NAV_BAR, hexColorNav);
+            setBgColorNavBar(hexColorNav);
+          }catch(JSONException ignore){
+            LOG.e(TAG, "Invalid hexString argument, use f.i. '#777777'");
+          }
         }, TIMEOUT_DELAY);
         return true;
 
       case ACTION_TOGGLE_COLOR_ICONS:
-        Utils.setTimeout(() -> {
-          cordova.getActivity().runOnUiThread(() -> {
-            try{
-              boolean isRequestUI = stateControlForSetInterval.getBoolean(ACTION_TOGGLE_COLOR_ICONS);
-              boolean isDarkIcon = args.getBoolean(0);
-              stateValueBoolean.put(ACTION_TOGGLE_COLOR_ICONS, isDarkIcon);
+        new Utils().setTimeout(activity, () -> {
+          try{
+            boolean isDarkIcon = args.getBoolean(0);
+            stateValueBoolean.put(ACTION_TOGGLE_COLOR_ICONS, isDarkIcon);
               /*
                 boolean isAppearanceLight = wInsetsController.isAppearanceLightStatusBars();
                 Поведение isAppearanceLightStatusBars в данной ситеации не соответвует тому что на телефоне.
                 Не синхрона. показывает предыдущее значение. Устанавливаем тупо лимит.
                */
 
-              Utils.ReturnSetInterval controlInterval = Utils.setInterval(() -> {
-                setDarkIcon(isDarkIcon);
-                return false;
-              }, 10, limitIntervalMillisecond);
-            }catch(JSONException e){
-              throw new RuntimeException(e);
-            }
-          });
+            Utils.ReturnSetInterval controlInterval = Utils.setInterval(() -> {
+              setDarkIcon(isDarkIcon);
+              return false;
+            }, 300, limitIntervalMillisecond);
+
+          }catch(JSONException e){
+            throw new RuntimeException(e);
+          }
         }, TIMEOUT_DELAY);
         return true;
 
       case ACTION_FULL_SCREEN:
-        Utils.setTimeout(() -> {
-          activity.runOnUiThread(() -> {
-            try{
-              boolean isFullScreen = args.getBoolean(0);
-              stateValueBoolean.put(ACTION_FULL_SCREEN, isFullScreen);
-              setFullScreen(isFullScreen);
-            }catch(JSONException e){
-              throw new RuntimeException(e);
-            }
-          });
+        new Utils().setTimeout(activity, () -> {
+          try{
+            boolean isFullScreen = args.getBoolean(0);
+            stateValueBoolean.put(ACTION_FULL_SCREEN, isFullScreen);
+            setFullScreen(isFullScreen);
+          }catch(JSONException e){
+            throw new RuntimeException(e);
+          }
         }, TIMEOUT_DELAY);
         return true;
 
       case ACTION_ACTIVE_IMMERSIVE_MODE:
-        Utils.setTimeout(() -> {
-          activity.runOnUiThread(() -> {
-            try{
-              boolean isActiveImmersiveMode = args.getBoolean(0);
-              stateValueBoolean.put(ACTION_ACTIVE_IMMERSIVE_MODE, isActiveImmersiveMode);
-              setActiveImmersiveMode(isActiveImmersiveMode);
-            }catch(JSONException e){
-              throw new RuntimeException(e);
-            }
-          });
+        new Utils().setTimeout(activity, () -> {
+          try{
+            boolean isActiveImmersiveMode = args.getBoolean(0);
+            stateValueBoolean.put(ACTION_ACTIVE_IMMERSIVE_MODE, isActiveImmersiveMode);
+            setActiveImmersiveMode(isActiveImmersiveMode);
+          }catch(JSONException e){
+            throw new RuntimeException(e);
+          }
         }, TIMEOUT_DELAY);
         return true;
+
+      case ACTION_GET_HEIGHT_SYSTEM_BARS:
+        new Utils().setTimeout(activity, () -> {
+          getHeightSystemBars(callbackContext);
+        }, TIMEOUT_DELAY);
+        return true;
+
       case ACTION_ON:
-        Utils.setTimeout(() -> {
-          activity.runOnUiThread(() -> {
-            try{
-              String nameEvent = args.getString(0);
-              boolean isRealEvent = listNameEvents.contains(nameEvent);
-              if(isRealEvent){
-                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
-                  if(listCurrentEvents.get(nameEvent) == null){
-                    listCurrentEvents.put(nameEvent, callbackContext);
-                    initializationStateByEvent(nameEvent);
-                  }
+        new Utils().setTimeout(activity, () -> {
+          try{
+            String nameEvent = args.getString(0);
+            boolean isRealEvent = eventsBars.listNameEvents.contains(nameEvent);
+            if(isRealEvent){
+              if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+                if(eventsBars.listCurrentEvents.get(nameEvent) == null){
+                  eventsBars.listCurrentEvents.put(nameEvent, callbackContext);
+                  eventsBars.initializationStateByEvent(nameEvent);
                 }
               }
-            }catch(JSONException e){
-              throw new RuntimeException(e);
             }
-          });
+          }catch(JSONException e){
+            throw new RuntimeException(e);
+          }
         }, TIMEOUT_DELAY);
         return true;
 
       case ACTION_OFF:
-        Utils.setTimeout(() -> {
-          activity.runOnUiThread(() -> {
-            try{
-              String nameEvent = args.getString(0);
-              boolean isRealEvent = listNameEvents.contains(nameEvent);
-              if(isRealEvent){
-                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
-                  if(listCurrentEvents.get(nameEvent) != null){
-                    listCurrentEvents.remove(nameEvent);
-                    removeStateByEvent(nameEvent);
-                  }
+        new Utils().setTimeout(activity, () -> {
+          try{
+            String nameEvent = args.getString(0);
+            boolean isRealEvent = eventsBars.listNameEvents.contains(nameEvent);
+            if(isRealEvent){
+              if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+                if(eventsBars.listCurrentEvents.get(nameEvent) != null){
+                  eventsBars.listCurrentEvents.remove(nameEvent);
+                  eventsBars.removeStateByEvent(nameEvent);
                 }
               }
-            }catch(JSONException e){
-              throw new RuntimeException(e);
             }
-          });
+          }catch(JSONException e){
+            throw new RuntimeException(e);
+          }
+
         }, TIMEOUT_DELAY);
         return true;
 
@@ -355,40 +299,37 @@ public class AndroidBars extends CordovaPlugin{
 
 
   public void setFullScreen(boolean isFull){
-    //Не засовывать в setOnApplyWindowInsetsListener будет цикл
-    int idGestures = WindowInsetsCompat.Type.systemGestures();
+    if(!isFull){
+      window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_VISIBLE);
+    }
+
     WindowCompat.setDecorFitsSystemWindows(activity.getWindow(), !isFull);
   }
 
-  public void setActiveImmersiveMode(boolean isMode){
+  public void setActiveImmersiveMode(boolean isMode) throws JSONException{
     WindowInsetsControllerCompat wInsetsController = getInsetsController();
-    int idStatusBar = WindowInsetsCompat.Type.statusBars();
-
+    int idSystemBars = WindowInsetsCompat.Type.systemBars();
 //    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     wInsetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_BARS_BY_TOUCH);
+    boolean isFullScreen = stateValueBoolean.getBoolean(ACTION_FULL_SCREEN);
+    
     if(isMode){
-      wInsetsController.hide(idStatusBar);
+      if(!isFullScreen){
+        setFullScreen(true);
+      }
+      wInsetsController.hide(idSystemBars);
     } else {
-      wInsetsController.show(idStatusBar);
+      if(!isFullScreen){
+        setFullScreen(false);
+      }
+      wInsetsController.show(idSystemBars);
     }
   }
 
   public void setDarkIcon(boolean isDarkIcon){
     WindowInsetsControllerCompat wInsetsController = getInsetsController();
-//    wInsetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_BARS_BY_TOUCH);
-    /*  На фоне так же ставиться и убираеться  setSystemUiFlag(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-     * */
-
-//    WindowInsetsControllerCompat.removeOnControllableInsetsChangedListener();
-//    wInsetsController.applyThemesSystemBarAppearance
     wInsetsController.setAppearanceLightStatusBars(isDarkIcon);
     wInsetsController.setAppearanceLightNavigationBars(isDarkIcon);
-  }
-
-  private boolean isCurrentDarkIcon(){
-    WindowInsetsControllerCompat wInsetsController = getInsetsController();
-    //Ориентировать будет только на sustem bar. Меняються меняем цвет и в nav одновременно.
-    return !wInsetsController.isAppearanceLightStatusBars();
   }
 
   public void setBgColorAll(String color){
@@ -418,18 +359,69 @@ public class AndroidBars extends CordovaPlugin{
     return WindowCompat.getInsetsController(activity.getWindow(), activity.getWindow().getDecorView());
   }
 
-  private void setApply(String action){
-//    this.CURRENT_ACTION = action;
-    ViewCompat.dispatchApplyWindowInsets(window.getDecorView(), getWindowInsetsCompat());
-  }
-
   private WindowInsetsCompat getWindowInsetsCompat(){
     return ViewCompat.getRootWindowInsets(activity.getWindow().getDecorView());
   }
 
-
   private WindowInsets getWindowInsets(){
     return activity.getWindow().getDecorView().getRootWindowInsets();
+  }
+
+  private boolean isFlag(int flag){
+    return !((window.getAttributes().flags & flag) == 0);
+  }
+
+  private void watchKeyboard(WindowInsetsCompat wInsets){
+    String nameEvent = "watchKeyboard";
+    CallbackContext cb = eventsBars.listCurrentEvents.get(nameEvent);
+    JSONObject keyboardInfoState = eventsBars.storeInfoByActiveEvents.get(nameEvent);
+    JSONObject payloadInfo = new JSONObject();
+    try{
+      int heightKeyboardState = (int) keyboardInfoState.get("height");
+      int imeHeight = wInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
+
+      if(imeHeight != 0){
+        Resources resources = window.getDecorView().getResources();
+        payloadInfo.put("action", "open");
+        payloadInfo.put("height", Utils.dpToPx(resources, imeHeight));
+      } else {
+        payloadInfo.put("action", "close");
+        payloadInfo.put("height", 0);
+      }
+
+      if(heightKeyboardState != payloadInfo.getInt("height")){
+        keyboardInfoState.put("action", payloadInfo.getString("action"));
+        keyboardInfoState.put("height", payloadInfo.getInt("height"));
+        Utils.sendResult(cb, payloadInfo, true);
+      }
+    }catch(JSONException e){
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void getHeightSystemBars(CallbackContext cb){
+    int idStatusBar = WindowInsetsCompat.Type.statusBars();
+    int idNavBar = WindowInsetsCompat.Type.navigationBars();
+    WindowInsetsCompat wInsetsCompat = getWindowInsetsCompat();
+    int heightStatusBar = wInsetsCompat.getInsets(idStatusBar).top;
+    int heightNavBar = wInsetsCompat.getInsets(idNavBar).bottom;
+
+    JSONObject payloadInfo = new JSONObject();
+    try{
+      Resources resources = window.getDecorView().getResources();
+      payloadInfo.put("heightStatus", Utils.dpToPx(resources, heightStatusBar));
+      payloadInfo.put("heightNav", Utils.dpToPx(resources, heightNavBar));
+      Utils.sendResult(cb, payloadInfo, false);
+    }catch(JSONException e){
+      throw new RuntimeException(e);
+    }
+  }
+
+
+
+  //  -----------------------------------------------------------------------------------------
+  private void setApply(String action){
+    ViewCompat.dispatchApplyWindowInsets(window.getDecorView(), getWindowInsetsCompat());
   }
 
   private void showBars(){
@@ -446,6 +438,12 @@ public class AndroidBars extends CordovaPlugin{
     }
   }
 
+
+  private boolean isCurrentDarkIcon(){
+    WindowInsetsControllerCompat wInsetsController = getInsetsController();
+    //Ориентировать будет только на sustem bar. Меняються меняем цвет и в nav одновременно.
+    return !wInsetsController.isAppearanceLightStatusBars();
+  }
 
   private void showKeyboard(){
     int idKeyboard = WindowInsetsCompat.Type.ime();
@@ -466,258 +464,20 @@ public class AndroidBars extends CordovaPlugin{
     return wInsetsCompat.getInsets(idKeyboard);
   }
 
-  private boolean isFlag(int flag){
-    return !((window.getAttributes().flags & flag) == 0);
-  }
-
-  private boolean isDarkColorIcon(){
-    WindowInsetsControllerCompat insetsController = getInsetsController();
-    return insetsController.isAppearanceLightStatusBars();
-  }
-
-  private void watchKeyboard(WindowInsetsCompat wInsets){
-    LOG.d("watchKeyboard", "");
-    String nameEvent = "watchKeyboard";
-    int idKeyboard = WindowInsetsCompat.Type.ime();
-//    int imeHeight = wInsets.getInsets(idKeyboard).bottom;
-    //Active Event
-    CallbackContext cb = listCurrentEvents.get(nameEvent);
-    JSONObject keyboardInfoState = storeInfoByActiveEvents.get(nameEvent);
-    JSONObject payloadInfo = new JSONObject();
-    try{
-      int heightKeyboardState = (int) keyboardInfoState.get("height");
-      int imeHeight = wInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
-
-      if(imeHeight != 0){
-        Resources resources = window.getDecorView().getResources();
-
-        payloadInfo.put("action", "open");
-        payloadInfo.put("height", Utils.dpToPx(resources, imeHeight));
-      } else {
-        payloadInfo.put("action", "close");
-        payloadInfo.put("height", 0);
-      }
-
-      if(heightKeyboardState != payloadInfo.getInt("height")){
-        keyboardInfoState.put("action", payloadInfo.getString("action"));
-        keyboardInfoState.put("height", payloadInfo.getInt("height"));
-        Utils.sendResult(cb, payloadInfo, true);
-      }
-    }catch(JSONException e){
-      throw new RuntimeException(e);
-    }
-
-
-  }
-
-  private void watchHeightBars(WindowInsetsCompat wInsets){
-    String nameEvent = "watchHeightBars";
-
-    LOG.d(nameEvent, "");
-//    Utils.sendResult(cb, info, true);
-
-    int idStatusBar = WindowInsetsCompat.Type.statusBars();
-    int idNavBar = WindowInsetsCompat.Type.navigationBars();
-    boolean isVisibleKeyboard = wInsets.isVisible(idStatusBar & idNavBar);
-    int heightStatusBar = wInsets.getInsets(idStatusBar).top;
-    int heightNavBar = wInsets.getInsets(idNavBar).bottom;
-    //Active Event
-    CallbackContext cb = listCurrentEvents.get(nameEvent);
-    JSONObject systemBarsInfoState = storeInfoByActiveEvents.get(nameEvent);
-    JSONObject payloadInfo = new JSONObject();
-    try{
-      int heightStatusBarState = (int) systemBarsInfoState.get("heightStatus");
-      if(heightStatusBarState == 0 & heightStatusBar != 0){
-        Resources resources = window.getDecorView().getResources();
-
-        systemBarsInfoState.put("heightStatus", Utils.dpToPx(resources, heightStatusBar));
-        systemBarsInfoState.put("heightNav", Utils.dpToPx(resources, heightNavBar));
-        Utils.sendResult(cb, systemBarsInfoState, true);
-      }
-
-
-    }catch(JSONException e){
-      throw new RuntimeException(e);
-    }
-
-
-  }
-
   private interface Interface_P{
     //Тупо пример. Оказываеться прям в классе в java пишут
   }
 
-  private void initializationStateByEvent(String nameEvent){
-    //Инициализация данных по эвентам
-    if(nameEvent.equals("watchKeyboard")){
-      JSONObject keyboardPayload = new JSONObject();
-      try{
-        keyboardPayload.put("action", "close");
-        keyboardPayload.put("height", 0);
-        storeInfoByActiveEvents.put("watchKeyboard", keyboardPayload);
-      }catch(JSONException e){
-        throw new RuntimeException(e);
-      }
-    }
-    if(nameEvent.equals("watchHeightBars")){
-      JSONObject barsPayload = new JSONObject();
-      try{
-        barsPayload.put("heightStatus", 0);
-        barsPayload.put("heightNav", 0);
-        storeInfoByActiveEvents.put("watchHeightBars", barsPayload);
-      }catch(JSONException e){
-        throw new RuntimeException(e);
-      }
-    }
-  }
 
-
-  public int getStatusBarHeight(){
-    Resources resources = window.getDecorView().getResources();
-    int statusBarId = resources.getIdentifier("status_bar_height", "dimen", "android");
-    if(statusBarId > 0){
-      return resources.getDimensionPixelSize(statusBarId);
-    } else {
-      return 0;
-    }
-  }
-
-    public int getNavigationBarHeight()  {
-    Resources resources = window.getDecorView().getResources();
-    int navigationBarId = resources.getIdentifier("navigation_bar_height", "dimen", "android");
-    if (navigationBarId > 0)
-    {
-      return resources.getDimensionPixelSize(navigationBarId);
-    }
-    return 0;
-  }
-  private void removeStateByEvent(String nameEvent){
-    if(nameEvent.equals("watchKeyboard")){
-
-    }
-  }
-
-  private class Event{
-    String name;
-    CallbackContext cb;
-
-    Event(String name, CallbackContext cb){
-      this.name = name;
-      this.cb = cb;
-    }
-  }
-
-
-  private class Events{
-    String name = "";
-    CallbackContext cb = null;
-
-    Events(String name, CallbackContext cb){
-      this.name = name;
-      this.cb = cb;
-    }
-
-    public boolean add(){
-      return true;
-    }
-
-    public boolean remove(){
-      return true;
-    }
-  }
-
-  //  private int calculateStatusBarColor() {
-//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-////      (WindowInsets.Type.statusBars()) == 0
-//      return calculateBarColor(
-//              WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, window.getStatusBarColor(),
-//              APPEARANCE_LIGHT_STATUS_BARS, true);
-//    } else {
-//      return 0;
-//    }
+//  private class Event{
+//    String name;
+//    CallbackContext cb;
 //
-//  }
-
-//  private int calculateNavigationBarColor() {
-//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-////      (WindowInsets.Type.navigationBars()) == 0)
-//      return calculateBarColor(
-//              WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, window.getNavigationBarColor(),
-//              APPEARANCE_LIGHT_NAVIGATION_BARS, true);
-//    } else {
-//      return 0;
-//    }
-//  }
-
-//  public int calculateBarColor(int translucentFlag, int barColor, int lightAppearanceFlag, boolean isTransparent) {
-//    int appearance = 0;
-//    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-//      WindowInsetsController insetsController = window.getInsetsController();
-//      appearance = insetsController.getSystemBarsAppearance();
-//    }
-//    int flags = window.getAttributes().flags;
-//    int semiTransparentBarColor = R.color.system_bar_background_semi_transparent;
-//    if ((flags & translucentFlag) != 0) {
-//      return semiTransparentBarColor;
-//    } else if ((flags & FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS) == 0) {
-//      return Color.BLACK;
-//    } else if (isTransparent && Color.alpha(barColor) == 0) {
-//      boolean light = (appearance & lightAppearanceFlag) != 0;
-//      return light ? SCRIM_LIGHT : semiTransparentBarColor;
-//    } else {
-//      return barColor;
+//    Event(String name, CallbackContext cb){
+//      this.name = name;
+//      this.cb = cb;
 //    }
 //  }
 
 }
-
-//      window.getDecorView().setOnSystemUiVisibilityChangeListener
-//              (new View.OnSystemUiVisibilityChangeListener() {
-//                @Override
-//                public void onSystemUiVisibilityChange(int visibility) {
-//                  // Note that system bars will only be "visible" if none of the
-//                  // LOW_PROFILE, HIDE_NAVIGATION, or FULLSCREEN flags are set.
-//                    LOG.d("SetOnApplyWindowInsetsListener", "ACTIVE1111");
-//                  if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
-//                    // The system bars are visible.
-//                  } else {
-//                    // The system bars are NOT visible.
-//                  }
-//                }
-//              });
-//windowInsets.isVisible(WindowInsetsCompat.Type.navigationBars())
-
-     /*
-                Растягивает фон за навигацию и статус бар  deprecated api 30
-                   window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-                   или
-                   window.setDecorFitsSystemWindows(false);
-            */
-            /*
-                Полупрозрачность
-                window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-                или
-                window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-
-                window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-                или
-                window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            */
-
-
-//    ViewCompat.setOnApplyWindowInsetsListener(window.getDecorView(), (v, windowInsets) -> {
-//      Insets insetsSystemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-//
-//      v.setPadding(
-//              insetsSystemBars.left,
-//              insetsSystemBars.top,
-//              insetsSystemBars.right,
-//              insetsSystemBars.bottom
-//      );
-//
-//
-//
-//      LOG.d("SYSTEM_BARS", "insetsSystemBars");
-//      return WindowInsetsCompat.CONSUMED;// WindowInsetsCompat.CONSUMED;
-//    });
 

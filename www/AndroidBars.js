@@ -19,7 +19,7 @@ function validateHex (hex = '') {
   }
 
  
-  if(validHex.length >= 9){
+  if(validHex.length > 9){
     validHex.length = 9
     validHex = [
       validHex[0], validHex[8], validHex[7], 
@@ -44,11 +44,9 @@ let classInJava = "AndroidBars";
 
 
 let AndroidBars = {
-
   setFullScreen: function (isFull) {
     exec(null, null, classInJava, "setFullScreen", [isFull]);
   },
-
   bgColorAll: function (hex = '') {
     const color = validateHex(hex)
     exec(null, null, classInJava, "bgColorAll", [color]);
@@ -62,11 +60,12 @@ let AndroidBars = {
     const color = validateHex(hex)
     exec(null, null, classInJava, "bgColorNavBar", [color]);
   },
-
   setDarkIcon: function (isDarkIcon) {
     exec(null, null, classInJava, "setDarkIcon", [isDarkIcon]);
   },
-  
+  getHeightSystemBars: function (cb) {
+    exec(cb, null, classInJava, "getHeightSystemBars", []);
+  },
   setActiveImmersiveMode: function (isMode) {
     exec(null, null, classInJava, "setActiveImmersiveMode", [isMode]);
   },

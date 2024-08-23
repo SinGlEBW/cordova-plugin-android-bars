@@ -1,5 +1,6 @@
 package ru.cordova.android.bars;
 
+import android.app.Activity;
 import android.content.res.Resources;
 import android.os.Handler;
 import android.util.DisplayMetrics;
@@ -28,12 +29,13 @@ public class Utils {
     }
   }
 
-  public static void setTimeout(Runnable runnable, int delay) {
+  public void setTimeout(Activity activity, Runnable runnable, int delay) {
     new Thread(() -> {
       try {
         Thread.sleep(delay);
-        runnable.run();
-      } catch (Exception e) {
+        activity.runOnUiThread(runnable);
+      }
+      catch (Exception e){
         System.err.println(e);
       }
     }).start();
