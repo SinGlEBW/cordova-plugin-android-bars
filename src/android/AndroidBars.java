@@ -55,7 +55,8 @@ public class AndroidBars extends CordovaPlugin{
 
   private int DELAY_SPLASH = 2;
   private int TIMEOUT_DELAY = 2;
-  private double TIME_REACTION_AFTER_SPLASH = 1.2;//уменьшая увеличиваем задержку отработки свойств после сплешь скрина
+  //На 29 нор 100.
+  private double TIME_REACTION_AFTER_SPLASH = 100;//1.2;//уменьшая увеличиваем задержку отработки свойств после сплешь скрина
   private int limitIntervalMillisecond = 3000;
   private CallbackContext callbackContext = null;
 
@@ -124,6 +125,7 @@ public class AndroidBars extends CordovaPlugin{
   @Override
   public void pluginInitialize(){
     LOG.d(TAG, "pluginInitialize");
+    window.clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 //    window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_VISIBLE);
   }
 
