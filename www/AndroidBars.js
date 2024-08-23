@@ -72,7 +72,6 @@ let AndroidBars = {
   setActiveImmersiveMode: function (isMode) {
     exec(null, null, classInJava, "setActiveImmersiveMode", [isMode]);
   },
-
   on: function (name, cb) {
     exec(cb, null, classInJava, "on", [name]);
   },
