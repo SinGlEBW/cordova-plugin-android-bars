@@ -252,7 +252,11 @@ public class AndroidBars extends CordovaPlugin{
 
       case ACTION_GET_HEIGHT_SYSTEM_BARS:
         new Utils().setTimeout(activity, () -> {
-          getHeightSystemBars(callbackContext);
+          try{
+            Utils.sendResult(callbackContext,  getHeightsBars(), false);
+          }catch(JSONException e){
+            throw new RuntimeException(e);
+          }
         }, TIMEOUT_DELAY);
         return true;
 
@@ -400,7 +404,12 @@ public class AndroidBars extends CordovaPlugin{
       int heightKeyboardState = (int) keyboardInfoState.get("height");
       int imeHeight = wInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
       boolean isFullScreen = stateValueBoolean.getBoolean(ACTION_FULL_SCREEN);
-      payloadInfo.put("isFullScreen", isFullScreen);
+
+      
+        JSONObject hData = getHeightsBars();
+        payloadInfo.put("isFullScreen", isFullScreen);
+        payloadInfo.put("heightStatus",hData.getBoolean("heightStatus"));
+        payloadInfo.put("heightNav", hData.getBoolean("heightNav")) ;
 
       if(imeHeight != 0){
         Resources resources = window.getDecorView().getResources();
@@ -410,9 +419,9 @@ public class AndroidBars extends CordovaPlugin{
         payloadInfo.put("isShow", false);
         payloadInfo.put("height", 0);
       }
-
+      
       if(heightKeyboardState != payloadInfo.getInt("height")){
-        keyboardInfoState.put("action", payloadInfo.getString("action"));
+        keyboardInfoState.put("isShow", payloadInfo.getBoolean("isShow"));
         keyboardInfoState.put("height", payloadInfo.getInt("height"));
         Utils.sendResult(cb, payloadInfo, true);
       }
@@ -421,23 +430,23 @@ public class AndroidBars extends CordovaPlugin{
     }
   }
 
-  private void getHeightSystemBars(CallbackContext cb){
-    int idStatusBar = WindowInsetsCompat.Type.statusBars();
-    int idNavBar = WindowInsetsCompat.Type.navigationBars();
-    WindowInsetsCompat wInsetsCompat = getWindowInsetsCompat();
-    int heightStatusBar = wInsetsCompat.getInsets(idStatusBar).top;
-    int heightNavBar = wInsetsCompat.getInsets(idNavBar).bottom;
-
-    JSONObject payloadInfo = new JSONObject();
-    try{
-      Resources resources = window.getDecorView().getResources();
-      payloadInfo.put("heightStatus", Utils.dpToPx(resources, heightStatusBar));
-      payloadInfo.put("heightNav", Utils.dpToPx(resources, heightNavBar));
-      Utils.sendResult(cb, payloadInfo, false);
-    }catch(JSONException e){
-      throw new RuntimeException(e);
-    }
+  private int getHeightStatusBar(WindowInsetsCompat wInsets){
+    return wInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
   }
+  private int getHeightNavBar(WindowInsetsCompat wInsets){
+    return wInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+  }
+  private JSONObject getHeightsBars() throws JSONException{
+    WindowInsetsCompat wInsetsCompat = getWindowInsetsCompat();
+    int heightStatusBar =  getHeightStatusBar(wInsetsCompat);
+    int heightNavBar = getHeightNavBar(wInsetsCompat);
+    JSONObject payloadInfo = new JSONObject();
+    Resources resources = window.getDecorView().getResources();
+    payloadInfo.put("heightStatus", Utils.dpToPx(resources, heightStatusBar));
+    payloadInfo.put("heightNav", Utils.dpToPx(resources, heightNavBar));
+    return payloadInfo;
+  }
+
 
 
 

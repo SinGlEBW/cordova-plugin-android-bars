@@ -4,7 +4,13 @@
 type NameEvents_OR = 'watchKeyboard';
 
 interface AllCbEvents{
-  watchKeyboard(data: {isShow: boolean, height: number, isFullScreen: boolean}):void
+  watchKeyboard(data: {
+    isShow: boolean, 
+    height: number, 
+    heightStatus: number, 
+    heightNav: number, 
+    isFullScreen: boolean
+  }):void
 }
 
 interface AndroidBars {
