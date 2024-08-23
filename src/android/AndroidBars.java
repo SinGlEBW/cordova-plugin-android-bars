@@ -41,6 +41,7 @@ public class AndroidBars extends CordovaPlugin{
   private static final String ACTION_BG_COLOR_NAV_BAR = "bgColorNavBar";
   private static final String ACTION_BG_COLOR_STATUS_BAR = "bgColorStatusBar";
   private static final String ACTION_FULL_SCREEN = "setFullScreen";
+  private static final String ACTION_IS_FULL_SCREEN = "isFullScreen";
   private static final String ACTION_TOGGLE_COLOR_ICONS = "setDarkIcon";
   private static final String ACTION_ACTIVE_IMMERSIVE_MODE = "setActiveImmersiveMode";
   private static final String ACTION_GET_HEIGHT_SYSTEM_BARS = "getHeightSystemBars";
@@ -255,6 +256,20 @@ public class AndroidBars extends CordovaPlugin{
         }, TIMEOUT_DELAY);
         return true;
 
+      case ACTION_IS_FULL_SCREEN:
+        new Utils().setTimeout(activity, () -> {
+          try{
+            boolean is = isFullScreen();
+            JSONObject payload = new JSONObject();
+            payload.put("is", is);
+            Utils.sendResult(callbackContext, payload, false);
+          }catch(JSONException e){
+            throw new RuntimeException(e);
+          }
+
+        }, TIMEOUT_DELAY);
+        return true;
+
       case ACTION_ON:
         new Utils().setTimeout(activity, () -> {
           try{
@@ -314,7 +329,7 @@ public class AndroidBars extends CordovaPlugin{
 //    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     wInsetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_BARS_BY_TOUCH);
     boolean isFullScreen = stateValueBoolean.getBoolean(ACTION_FULL_SCREEN);
-    
+
     if(isMode){
       if(!isFullScreen){
         setFullScreen(true);
@@ -332,6 +347,9 @@ public class AndroidBars extends CordovaPlugin{
     WindowInsetsControllerCompat wInsetsController = getInsetsController();
     wInsetsController.setAppearanceLightStatusBars(isDarkIcon);
     wInsetsController.setAppearanceLightNavigationBars(isDarkIcon);
+  }
+  public boolean isFullScreen() throws JSONException{
+    return stateValueBoolean.getBoolean(ACTION_FULL_SCREEN);
   }
 
   public void setBgColorAll(String color){
@@ -381,13 +399,15 @@ public class AndroidBars extends CordovaPlugin{
     try{
       int heightKeyboardState = (int) keyboardInfoState.get("height");
       int imeHeight = wInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
+      boolean isFullScreen = stateValueBoolean.getBoolean(ACTION_FULL_SCREEN);
+      payloadInfo.put("isFullScreen", isFullScreen);
 
       if(imeHeight != 0){
         Resources resources = window.getDecorView().getResources();
-        payloadInfo.put("action", "open");
+        payloadInfo.put("isShow", true);
         payloadInfo.put("height", Utils.dpToPx(resources, imeHeight));
       } else {
-        payloadInfo.put("action", "close");
+        payloadInfo.put("isShow", false);
         payloadInfo.put("height", 0);
       }
 

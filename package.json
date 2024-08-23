@@ -1,13 +1,13 @@
 {
  "name": "cordova-plugin-android-bars",
- "version": "1.0.59",
+ "version": "1.0.62",
  "description": "",
  "repository": {
   "url": "git+https://github.com/SinGlEBW/cordova-plugin-android-bars.git",
   "type": "git"
  },
  "scripts": {
-  "publish": "git push && npm publish"
+  "pb": "git push && npm publish"
  },
  "types": "./types/index.d.ts",
  "cordova": {

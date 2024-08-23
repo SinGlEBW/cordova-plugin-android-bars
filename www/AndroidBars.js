@@ -47,6 +47,9 @@ let AndroidBars = {
   setFullScreen: function (isFull) {
     exec(null, null, classInJava, "setFullScreen", [isFull]);
   },
+  isFullScreen: function (cb) {
+    exec(cb, null, classInJava, "isFullScreen", []);
+  },
   bgColorAll: function (hex = '') {
     const color = validateHex(hex)
     exec(null, null, classInJava, "bgColorAll", [color]);
@@ -69,6 +72,7 @@ let AndroidBars = {
   setActiveImmersiveMode: function (isMode) {
     exec(null, null, classInJava, "setActiveImmersiveMode", [isMode]);
   },
+
   on: function (name, cb) {
     exec(cb, null, classInJava, "on", [name]);
   },

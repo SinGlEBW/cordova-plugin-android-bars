@@ -4,11 +4,12 @@
 type NameEvents_OR = 'watchKeyboard';
 
 interface AllCbEvents{
-  watchKeyboard(data: {action: string, height: number}):void
+  watchKeyboard(data: {isShow: boolean, height: number, isFullScreen: boolean}):void
 }
 
 interface AndroidBars {
   setFullScreen(isFull):void;
+  isFullScreen(cb: ({is:  boolean}) => void):void;
   bgColorAll(hex: string):void;
   bgColorStatusBar(hex: string):void;
   bgColorNavBar(hex: string):void;

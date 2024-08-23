@@ -17,24 +17,24 @@
 7 silly cache add   spec: 'D:\\Projects\\Created_Lib\\CordovaProject\\AndroidBars',
 7 silly cache add   type: 'directory'
 7 silly cache add }
-8 verbose addLocalDirectory C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache\cordova-plugin-android-bars\1.0.58\package.tgz not in flight; packing
+8 verbose addLocalDirectory C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache\cordova-plugin-android-bars\1.0.59\package.tgz not in flight; packing
 9 verbose correctMkdir C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache correctMkdir not in flight; initializing
 10 verbose tar pack [
-10 verbose tar pack   'C:\\Users\\grigoriy.shlyakhtich\\AppData\\Local\\npm-cache\\cordova-plugin-android-bars\\1.0.58\\package.tgz',
+10 verbose tar pack   'C:\\Users\\grigoriy.shlyakhtich\\AppData\\Local\\npm-cache\\cordova-plugin-android-bars\\1.0.59\\package.tgz',
 10 verbose tar pack   'D:\\Projects\\Created_Lib\\CordovaProject\\AndroidBars'
 10 verbose tar pack ]
-11 verbose tarball C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache\cordova-plugin-android-bars\1.0.58\package.tgz
+11 verbose tarball C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache\cordova-plugin-android-bars\1.0.59\package.tgz
 12 verbose folder D:\Projects\Created_Lib\CordovaProject\AndroidBars
-13 info prepublish cordova-plugin-android-bars@1.0.58
-14 verbose addLocalTarball adding from inside cache C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache\cordova-plugin-android-bars\1.0.58\package.tgz
+13 info prepublish cordova-plugin-android-bars@1.0.59
+14 verbose addLocalTarball adding from inside cache C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache\cordova-plugin-android-bars\1.0.59\package.tgz
 15 verbose correctMkdir C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache correctMkdir not in flight; initializing
-16 silly cache afterAdd cordova-plugin-android-bars@1.0.58
-17 verbose afterAdd C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache\cordova-plugin-android-bars\1.0.58\package\package.json not in flight; writing
+16 silly cache afterAdd cordova-plugin-android-bars@1.0.59
+17 verbose afterAdd C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache\cordova-plugin-android-bars\1.0.59\package\package.json not in flight; writing
 18 verbose correctMkdir C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache correctMkdir not in flight; initializing
-19 verbose afterAdd C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache\cordova-plugin-android-bars\1.0.58\package\package.json written
+19 verbose afterAdd C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache\cordova-plugin-android-bars\1.0.59\package\package.json written
 20 silly publish {
 20 silly publish   name: 'cordova-plugin-android-bars',
-20 silly publish   version: '1.0.58',
+20 silly publish   version: '1.0.59',
 20 silly publish   description: '---\r title: AndroidBars\r description: Control the device systemBars.\r ---',
 20 silly publish   repository: {
 20 silly publish     url: 'git+https://github.com/SinGlEBW/cordova-plugin-android-bars.git',
@@ -104,13 +104,13 @@
 20 silly publish     '```\r\n' +
 20 silly publish     '\r\n',
 20 silly publish   readmeFilename: 'README.md',
-20 silly publish   gitHead: 'c765300ae0a92a1fd672b463a55f0075345536be',
+20 silly publish   gitHead: '3836ac9ac0162b85039ff918304312a161fa98d9',
 20 silly publish   bugs: {
 20 silly publish     url: 'https://github.com/SinGlEBW/cordova-plugin-android-bars/issues'
 20 silly publish   },
 20 silly publish   homepage: 'https://github.com/SinGlEBW/cordova-plugin-android-bars#readme',
-20 silly publish   _id: 'cordova-plugin-android-bars@1.0.58',
-20 silly publish   _shasum: '6719d1d8f35a934ae36ae5ff80ec8cf274133ace',
+20 silly publish   _id: 'cordova-plugin-android-bars@1.0.59',
+20 silly publish   _shasum: '90a9a059080075a10bafbda369501f122835f005',
 20 silly publish   _from: '.'
 20 silly publish }
 21 verbose getPublishConfig undefined
@@ -127,54 +127,44 @@
 25 silly mapToRegistry }
 26 silly mapToRegistry uri https://registry.npmjs.org/cordova-plugin-android-bars
 27 verbose publish registryBase https://registry.npmjs.org/
-28 silly publish uploading C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache\cordova-plugin-android-bars\1.0.58\package.tgz
+28 silly publish uploading C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache\cordova-plugin-android-bars\1.0.59\package.tgz
 29 verbose request uri https://registry.npmjs.org/cordova-plugin-android-bars
 30 verbose request sending authorization for write operation
-31 info attempt registry request try #1 at 12:54:51
+31 info attempt registry request try #1 at 18:33:59
 32 verbose request using bearer token for auth
-33 verbose request id 92fa40e4801b99ec
+33 verbose request id 7e5ff66420bc5946
 34 http request PUT https://registry.npmjs.org/cordova-plugin-android-bars
-35 http 200 https://registry.npmjs.org/cordova-plugin-android-bars
+35 http 403 https://registry.npmjs.org/cordova-plugin-android-bars
 36 verbose headers {
-36 verbose headers   date: 'Fri, 23 Aug 2024 09:54:54 GMT',
+36 verbose headers   date: 'Fri, 23 Aug 2024 15:34:00 GMT',
 36 verbose headers   'content-type': 'application/json',
-36 verbose headers   'content-length': '16',
+36 verbose headers   'transfer-encoding': 'chunked',
 36 verbose headers   connection: 'keep-alive',
-36 verbose headers   'cf-ray': '8b7a3949ac7a0d32-ARN',
+36 verbose headers   'cf-ray': '8b7c2a0c5aafb93f-AMS',
 36 verbose headers   'cf-cache-status': 'DYNAMIC',
 36 verbose headers   vary: 'Accept-Encoding',
-36 verbose headers   server: 'cloudflare'
+36 verbose headers   server: 'cloudflare',
+36 verbose headers   'content-encoding': 'gzip'
 36 verbose headers }
 37 verbose request invalidating C:\Users\grigoriy.shlyakhtich\AppData\Local\npm-cache\registry.npmjs.org\cordova-plugin-android-bars on PUT
-38 info publish cordova-plugin-android-bars@1.0.58
-39 verbose unsafe-perm in lifecycle true
-40 info cordova-plugin-android-bars@1.0.58 Failed to exec publish script
-41 verbose stack Error: cordova-plugin-android-bars@1.0.58 publish: `git push && npm publish`
-41 verbose stack Exit status 1
-41 verbose stack     at EventEmitter.<anonymous> (D:\Projects\Created_Lib\CordovaProject\node_modules\npm\lib\utils\lifecycle.js:217:16)
-41 verbose stack     at EventEmitter.emit (node:events:514:28)
-41 verbose stack     at ChildProcess.<anonymous> (D:\Projects\Created_Lib\CordovaProject\node_modules\npm\lib\utils\spawn.js:24:14)
-41 verbose stack     at ChildProcess.emit (node:events:514:28)
-41 verbose stack     at maybeClose (node:internal/child_process:1105:16)
-41 verbose stack     at ChildProcess._handle.onexit (node:internal/child_process:305:5)
-42 verbose pkgid cordova-plugin-android-bars@1.0.58
-43 verbose cwd D:\Projects\Created_Lib\CordovaProject\AndroidBars
-44 error Windows_NT 10.0.19045
-45 error argv "C:\\Program Files\\nodejs\\node.exe" "D:\\Projects\\Created_Lib\\CordovaProject\\node_modules\\npm\\bin\\npm-cli.js" "publish"
-46 error node v20.10.0
-47 error npm  v2.15.12
-48 error code ELIFECYCLE
-49 error cordova-plugin-android-bars@1.0.58 publish: `git push && npm publish`
-49 error Exit status 1
-50 error Failed at the cordova-plugin-android-bars@1.0.58 publish script 'git push && npm publish'.
-50 error This is most likely a problem with the cordova-plugin-android-bars package,
-50 error not with npm itself.
-50 error Tell the author that this fails on your system:
-50 error     git push && npm publish
-50 error You can get information on how to open an issue for this project with:
-50 error     npm bugs cordova-plugin-android-bars
-50 error Or if that isn't available, you can get their info via:
-50 error
-50 error     npm owner ls cordova-plugin-android-bars
-50 error There is likely additional logging output above.
-51 verbose exit [ 1, true ]
+38 error publish Failed PUT 403
+39 verbose stack Error: You cannot publish over the previously published versions: 1.0.59. : cordova-plugin-android-bars
+39 verbose stack     at makeError (D:\Projects\Created_Lib\CordovaProject\node_modules\npm\node_modules\npm-registry-client\lib\request.js:302:12)
+39 verbose stack     at CachingRegistryClient.<anonymous> (D:\Projects\Created_Lib\CordovaProject\node_modules\npm\node_modules\npm-registry-client\lib\request.js:290:14)
+39 verbose stack     at Gunzip.cb (D:\Projects\Created_Lib\CordovaProject\node_modules\npm\node_modules\npm-registry-client\lib\request.js:216:7)
+39 verbose stack     at Gunzip.zlibBufferOnEnd (node:zlib:161:10)
+39 verbose stack     at Gunzip.emit (node:events:514:28)
+39 verbose stack     at endReadableNT (node:internal/streams/readable:1589:12)
+39 verbose stack     at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+40 verbose statusCode 403
+41 verbose pkgid cordova-plugin-android-bars
+42 verbose cwd D:\Projects\Created_Lib\CordovaProject\AndroidBars
+43 error Windows_NT 10.0.19045
+44 error argv "C:\\Program Files\\nodejs\\node.exe" "D:\\Projects\\Created_Lib\\CordovaProject\\node_modules\\npm\\bin\\npm-cli.js" "publish"
+45 error node v20.10.0
+46 error npm  v2.15.12
+47 error code E403
+48 error You cannot publish over the previously published versions: 1.0.59. : cordova-plugin-android-bars
+49 error If you need help, you may report this error at:
+49 error     <https://github.com/npm/npm/issues>
+50 verbose exit [ 1, true ]

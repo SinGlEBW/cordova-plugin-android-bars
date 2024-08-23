@@ -46,12 +46,12 @@ List methods
     AndroidBars.getHeightSystemBats(({heightStatus, heightNav}) => {
 
     })
-    AndroidBars.on('watchKeyboard', ({action, height}) => {
+    AndroidBars.on('watchKeyboard', ({isShow, height, isFullScreen}) => {
 
     })
 
     AndroidBars.off('watchKeyboard')
-   
+    AndroidBars.isFullScreen(({is}) => {});
 
 ```
 
