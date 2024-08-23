@@ -403,13 +403,12 @@ public class AndroidBars extends CordovaPlugin{
     try{
       int heightKeyboardState = (int) keyboardInfoState.get("height");
       int imeHeight = wInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
-      boolean isFullScreen = stateValueBoolean.getBoolean(ACTION_FULL_SCREEN);
 
       
         JSONObject hData = getHeightsBars();
-        payloadInfo.put("isFullScreen", isFullScreen);
-        payloadInfo.put("heightStatus",hData.getBoolean("heightStatus"));
-        payloadInfo.put("heightNav", hData.getBoolean("heightNav")) ;
+        payloadInfo.put("isFullScreen", stateValueBoolean.getBoolean(ACTION_FULL_SCREEN));
+        payloadInfo.put("heightStatus",hData.getInt("heightStatus"));
+        payloadInfo.put("heightNav", hData.getInt("heightNav")) ;
 
       if(imeHeight != 0){
         Resources resources = window.getDecorView().getResources();
