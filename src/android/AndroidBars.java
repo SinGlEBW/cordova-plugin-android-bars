@@ -502,11 +502,28 @@ public class AndroidBars extends CordovaPlugin{
   }
 
   private int getHeightStatusBar(WindowInsetsCompat wInsets){
-    return wInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+    Resources resources = window.getDecorView().getResources();
+    int resourceId = resources.getIdentifier("status_bar_height", "dimen", "android");
+    if (resourceId > 0) {
+      int h = resources.getDimensionPixelSize(resourceId);
+      return h;
+    }
+    return 0;
+    //    return wInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
   }
 
   private int getHeightNavBar(WindowInsetsCompat wInsets){
-    return wInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+    // Замустив не в вертикальной ориентации я должен гадать left или right или bottom что бы получить размер навигации
+    int g = wInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+
+    // Так что берём по старинке
+    Resources resources = window.getDecorView().getResources();
+    int resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android");
+    if (resourceId > 0) {
+      int h = resources.getDimensionPixelSize(resourceId);
+      return h;
+    }
+    return 0;
   }
 
   private JSONObject getHeightsBars() throws JSONException{
