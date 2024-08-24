@@ -19,7 +19,7 @@ interface AndroidBars {
   bgColorAll(hex: string):void;
   bgColorStatusBar(hex: string):void;
   bgColorNavBar(hex: string):void;
-  setDarkIcon(isDarkIcon: boolean):void;
+  setDarkIcon(isDarkIcon: boolean, isDarkNavIcon?:boolean):void;
   setActiveImmersiveMode(isMode: boolean):void;
   on<Name extends NameEvents_OR>(name:Name, cb: AllCbEvents[Name] ):void;
   off(name:NameEvents_OR):void;

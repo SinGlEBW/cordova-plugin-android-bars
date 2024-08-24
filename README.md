@@ -40,7 +40,9 @@ List methods
     AndroidBars.bgColorNavBar(hex)
     AndroidBars.bgColorAll(hex)
 
-    AndroidBars.setDarkIcon(is) // sets dark or light tones on icons in bars
+    AndroidBars.setDarkIcon(isDarkIcon, isDarkNavIcon) // sets dark or light tones on icons in bars.
+    /* !!! The 2nd parameter is optional. Sometimes it is necessary to control the navBar separately using, for example, a dark background and it is better to have light icons on it. If it is not passed, it will rely on the 1st parameter.  */
+    
     AndroidBars.setFullScreen(is) //controls the size of the background. by default, it is not fullScreen (ps. if other plugins do not disrupt the operation)
     AndroidBars.setActiveImmersiveMode(is)//enables or disables the status and navigation panels. When enabled, the default state will be returned, which can be initially set via setFullScreen.
     AndroidBars.getHeightSystemBats(({heightStatus, heightNav}) => {

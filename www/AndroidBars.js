@@ -63,8 +63,15 @@ let AndroidBars = {
     const color = validateHex(hex)
     exec(null, null, classInJava, "bgColorNavBar", [color]);
   },
-  setDarkIcon: function (isDarkIcon) {
-    exec(null, null, classInJava, "setDarkIcon", [isDarkIcon]);
+  setDarkIcon: function (isDarkIcon, isDarkNavIcon) {
+    let statusDarkNavIcon = "null";
+    if(isDarkNavIcon === true){
+      statusDarkNavIcon = "active";
+    }
+    if(isDarkNavIcon === false){
+      statusDarkNavIcon = "noActive";
+    }
+    exec(null, null, classInJava, "setDarkIcon", [isDarkIcon, statusDarkNavIcon]);
   },
   getHeightSystemBars: function (cb) {
     exec(cb, null, classInJava, "getHeightSystemBars", []);

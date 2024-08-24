@@ -75,10 +75,15 @@ public class AndroidBars extends CordovaPlugin{
     activity = this.cordova.getActivity();
     window = activity.getWindow();
     DELAY_SPLASH = preferences.getInteger("SplashScreenDelay", 10);
+    if(Build.VERSION.SDK_INT > Build.VERSION_CODES.S){
+      TIME_REACTION_AFTER_SPLASH = 10;
+    }
+
     TIMEOUT_DELAY = (int) (DELAY_SPLASH / TIME_REACTION_AFTER_SPLASH);// /  1.2
 
     activity.runOnUiThread(() -> {
       String defaultColor = "#000000";
+      window.clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
       try{
         for(String key : listStringState) stateValueString.put(key, defaultColor);
 
@@ -105,7 +110,6 @@ public class AndroidBars extends CordovaPlugin{
       new Utils().setTimeout(activity, () -> {
         TIMEOUT_DELAY = 3;
       }, (int) (TIMEOUT_DELAY * 1.5));
-
 
 
       ViewCompat.setOnApplyWindowInsetsListener(window.getDecorView().getRootView(), (view, wInsets) -> {
@@ -165,7 +169,11 @@ public class AndroidBars extends CordovaPlugin{
   public boolean execute(final String action, final CordovaArgs args, final CallbackContext callbackContext){
     LOG.d(TAG, "execute (action): " + action);
     this.callbackContext = callbackContext;
-
+    /*
+     *   INFO: setInterval требуеться в начале инициализации приложения т.к. некоторые api упорно мешают пепереключать цвета
+     *   меняя на свои. Ориентироваться на статус и деативировать interval не выйдет т.к. в моменте времени он снова изменится
+     *   поэтому долбим до осечки.
+     * */
 
     switch(action){
       case ACTION_BG_COLOR_ALL:
@@ -173,7 +181,20 @@ public class AndroidBars extends CordovaPlugin{
           try{
             String hexSystemBars = args.getString(0);
             stateValueString.put(ACTION_BG_COLOR_ALL, hexSystemBars);
-            setBgColorAll(hexSystemBars);
+
+            if(Build.VERSION.SDK_INT > Build.VERSION_CODES.S){
+              if(TIMEOUT_DELAY == 0){
+                setBgColorAll(hexSystemBars);
+              } else {
+                Utils.setInterval(() -> {
+                  setBgColorAll(hexSystemBars);
+                  return false;
+                }, 300, limitIntervalMillisecond);
+              }
+            } else {
+              setBgColorAll(hexSystemBars);
+            }
+
           }catch(JSONException ignore){
             LOG.e(TAG, "Invalid hexString argument, use f.i. '#777777'");
           }
@@ -185,7 +206,19 @@ public class AndroidBars extends CordovaPlugin{
           try{
             String hexStatusBars = args.getString(0);
             stateValueString.put(ACTION_BG_COLOR_STATUS_BAR, hexStatusBars);
-            setBgColorStatusBar(hexStatusBars);
+
+            if(Build.VERSION.SDK_INT > Build.VERSION_CODES.S){
+              if(TIMEOUT_DELAY == 0){
+                setBgColorStatusBar(hexStatusBars);
+              } else {
+                Utils.setInterval(() -> {
+                  setBgColorStatusBar(hexStatusBars);
+                  return false;
+                }, 300, limitIntervalMillisecond);
+              }
+            } else {
+              setBgColorStatusBar(hexStatusBars);
+            }
           }catch(JSONException ignore){
             LOG.e(TAG, "Invalid" + ACTION_BG_COLOR_STATUS_BAR);
           }
@@ -197,7 +230,19 @@ public class AndroidBars extends CordovaPlugin{
           try{
             String hexColorNav = args.getString(0);
             stateValueString.put(ACTION_BG_COLOR_NAV_BAR, hexColorNav);
-            setBgColorNavBar(hexColorNav);
+            if(Build.VERSION.SDK_INT > Build.VERSION_CODES.S){
+              if(TIMEOUT_DELAY == 0){
+                setBgColorNavBar(hexColorNav);
+              } else {
+                Utils.setInterval(() -> {
+                  setBgColorNavBar(hexColorNav);
+                  return false;
+                }, 300, limitIntervalMillisecond);
+              }
+            } else {
+              setBgColorNavBar(hexColorNav);
+            }
+
           }catch(JSONException ignore){
             LOG.e(TAG, "Invalid hexString argument, use f.i. '#777777'");
           }
@@ -208,6 +253,7 @@ public class AndroidBars extends CordovaPlugin{
         new Utils().setTimeout(activity, () -> {
           try{
             boolean isDarkIcon = args.getBoolean(0);
+            String statusDarkNavIcon = args.getString(1);//"null" | "active" | "noActive"
             stateValueBoolean.put(ACTION_TOGGLE_COLOR_ICONS, isDarkIcon);
               /*
                 boolean isAppearanceLight = wInsetsController.isAppearanceLightStatusBars();
@@ -215,10 +261,18 @@ public class AndroidBars extends CordovaPlugin{
                 Не синхрона. показывает предыдущее значение. Устанавливаем тупо лимит.
                */
 
-            Utils.ReturnSetInterval controlInterval = Utils.setInterval(() -> {
-              setDarkIcon(isDarkIcon);
-              return false;
-            }, 300, limitIntervalMillisecond);
+            if(Build.VERSION.SDK_INT > Build.VERSION_CODES.S){
+              if(TIMEOUT_DELAY == 0){
+                setDarkIcon(isDarkIcon, statusDarkNavIcon);
+              } else {
+                Utils.setInterval(() -> {
+                  setDarkIcon(isDarkIcon, statusDarkNavIcon);
+                  return false;
+                }, 300, limitIntervalMillisecond);
+              }
+            } else {
+              setDarkIcon(isDarkIcon, statusDarkNavIcon);
+            }
 
           }catch(JSONException e){
             throw new RuntimeException(e);
@@ -231,7 +285,19 @@ public class AndroidBars extends CordovaPlugin{
           try{
             boolean isFullScreen = args.getBoolean(0);
             stateValueBoolean.put(ACTION_FULL_SCREEN, isFullScreen);
-            setFullScreen(isFullScreen);
+
+            if(Build.VERSION.SDK_INT > Build.VERSION_CODES.S){
+              if(TIMEOUT_DELAY == 0){
+                setFullScreen(isFullScreen);
+              } else {
+                Utils.setInterval(() -> {
+                  setFullScreen(isFullScreen);
+                  return false;
+                }, 300, limitIntervalMillisecond);
+              }
+            } else {
+              setFullScreen(isFullScreen);
+            }
           }catch(JSONException e){
             throw new RuntimeException(e);
           }
@@ -253,7 +319,7 @@ public class AndroidBars extends CordovaPlugin{
       case ACTION_GET_HEIGHT_SYSTEM_BARS:
         new Utils().setTimeout(activity, () -> {
           try{
-            Utils.sendResult(callbackContext,  getHeightsBars(), false);
+            Utils.sendResult(callbackContext, getHeightsBars(), false);
           }catch(JSONException e){
             throw new RuntimeException(e);
           }
@@ -347,11 +413,17 @@ public class AndroidBars extends CordovaPlugin{
     }
   }
 
-  public void setDarkIcon(boolean isDarkIcon){
+  public void setDarkIcon(boolean isDarkIcon, String statusDarkNavIcon){
     WindowInsetsControllerCompat wInsetsController = getInsetsController();
     wInsetsController.setAppearanceLightStatusBars(isDarkIcon);
-    wInsetsController.setAppearanceLightNavigationBars(isDarkIcon);
+    if(statusDarkNavIcon.equals("null")){
+      wInsetsController.setAppearanceLightNavigationBars(isDarkIcon);
+    } else {
+      boolean isDarkNavIcon = statusDarkNavIcon.equals("active");
+      wInsetsController.setAppearanceLightNavigationBars(isDarkNavIcon);
+    }
   }
+
   public boolean isFullScreen() throws JSONException{
     return stateValueBoolean.getBoolean(ACTION_FULL_SCREEN);
   }
@@ -404,11 +476,11 @@ public class AndroidBars extends CordovaPlugin{
       int heightKeyboardState = (int) keyboardInfoState.get("height");
       int imeHeight = wInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
 
-      
-        JSONObject hData = getHeightsBars();
-        payloadInfo.put("isFullScreen", stateValueBoolean.getBoolean(ACTION_FULL_SCREEN));
-        payloadInfo.put("heightStatus",hData.getInt("heightStatus"));
-        payloadInfo.put("heightNav", hData.getInt("heightNav")) ;
+
+      JSONObject hData = getHeightsBars();
+      payloadInfo.put("isFullScreen", stateValueBoolean.getBoolean(ACTION_FULL_SCREEN));
+      payloadInfo.put("heightStatus", hData.getInt("heightStatus"));
+      payloadInfo.put("heightNav", hData.getInt("heightNav"));
 
       if(imeHeight != 0){
         Resources resources = window.getDecorView().getResources();
@@ -418,7 +490,7 @@ public class AndroidBars extends CordovaPlugin{
         payloadInfo.put("isShow", false);
         payloadInfo.put("height", 0);
       }
-      
+
       if(heightKeyboardState != payloadInfo.getInt("height")){
         keyboardInfoState.put("isShow", payloadInfo.getBoolean("isShow"));
         keyboardInfoState.put("height", payloadInfo.getInt("height"));
@@ -432,12 +504,14 @@ public class AndroidBars extends CordovaPlugin{
   private int getHeightStatusBar(WindowInsetsCompat wInsets){
     return wInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
   }
+
   private int getHeightNavBar(WindowInsetsCompat wInsets){
     return wInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
   }
+
   private JSONObject getHeightsBars() throws JSONException{
     WindowInsetsCompat wInsetsCompat = getWindowInsetsCompat();
-    int heightStatusBar =  getHeightStatusBar(wInsetsCompat);
+    int heightStatusBar = getHeightStatusBar(wInsetsCompat);
     int heightNavBar = getHeightNavBar(wInsetsCompat);
     JSONObject payloadInfo = new JSONObject();
     Resources resources = window.getDecorView().getResources();
@@ -445,8 +519,6 @@ public class AndroidBars extends CordovaPlugin{
     payloadInfo.put("heightNav", Utils.dpToPx(resources, heightNavBar));
     return payloadInfo;
   }
-
-
 
 
   //  -----------------------------------------------------------------------------------------
