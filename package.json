@@ -1,6 +1,6 @@
 {
  "name": "cordova-plugin-android-bars",
- "version": "1.0.68",
+ "version": "1.0.69",
  "description": "",
  "repository": {
   "url": "git+https://github.com/SinGlEBW/cordova-plugin-android-bars.git",
@@ -18,7 +18,10 @@
  },
  "keywords": [
   "ecosystem:cordova",
-  "cordova-android"
+  "cordova-android",
+  "cordova-plugin-android-bars",
+  "plugin-android-bars",
+  "android-bars"
  ],
  "author": "SinGlEBW",
  "license": "ISC"
