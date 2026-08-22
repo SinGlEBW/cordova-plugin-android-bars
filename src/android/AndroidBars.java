@@ -112,7 +112,7 @@ public class AndroidBars extends CordovaPlugin{
       }, (int) (TIMEOUT_DELAY * 1.5));
 
 
-      ViewCompat.setOnApplyWindowInsetsListener(window.getDecorView().getRootView(), (view, wInsets) -> {
+      ViewCompat.setOnApplyWindowInsetsListener(window.getDecorView(), (view, wInsets) -> {
         Insets iGestures = wInsets.getInsets(WindowInsetsCompat.Type.systemGestures());
         Insets iBars = wInsets.getInsets(WindowInsetsCompat.Type.systemBars());
 
@@ -261,19 +261,7 @@ public class AndroidBars extends CordovaPlugin{
                 Не синхрона. показывает предыдущее значение. Устанавливаем тупо лимит.
                */
 
-            if(Build.VERSION.SDK_INT > Build.VERSION_CODES.S){
-              if(TIMEOUT_DELAY == 0){
-                setDarkIcon(isDarkIcon, statusDarkNavIcon);
-              } else {
-                Utils.setInterval(() -> {
-                  setDarkIcon(isDarkIcon, statusDarkNavIcon);
-                  return false;
-                }, 300, limitIntervalMillisecond);
-              }
-            } else {
-              setDarkIcon(isDarkIcon, statusDarkNavIcon);
-            }
-
+            setDarkIcon(isDarkIcon, statusDarkNavIcon);
           }catch(JSONException e){
             throw new RuntimeException(e);
           }
@@ -386,11 +374,17 @@ public class AndroidBars extends CordovaPlugin{
 
 
   public void setFullScreen(boolean isFull){
-    if(!isFull){
+    WindowInsetsControllerCompat wInsetsController = getInsetsController();
+
+    if(isFull){
+      WindowCompat.setDecorFitsSystemWindows(activity.getWindow(), false);
+    } else {
       window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_VISIBLE);
+      WindowCompat.setDecorFitsSystemWindows(activity.getWindow(), true);
+      // Показываем системные панели
+      wInsetsController.show(WindowInsetsCompat.Type.systemBars());
     }
 
-    WindowCompat.setDecorFitsSystemWindows(activity.getWindow(), !isFull);
   }
 
   public void setActiveImmersiveMode(boolean isMode) throws JSONException{
@@ -414,14 +408,16 @@ public class AndroidBars extends CordovaPlugin{
   }
 
   public void setDarkIcon(boolean isDarkIcon, String statusDarkNavIcon){
-    WindowInsetsControllerCompat wInsetsController = getInsetsController();
-    wInsetsController.setAppearanceLightStatusBars(isDarkIcon);
-    if(statusDarkNavIcon.equals("null")){
-      wInsetsController.setAppearanceLightNavigationBars(isDarkIcon);
-    } else {
-      boolean isDarkNavIcon = statusDarkNavIcon.equals("active");
-      wInsetsController.setAppearanceLightNavigationBars(isDarkNavIcon);
-    }
+    activity.runOnUiThread(() -> {
+      WindowInsetsControllerCompat wInsetsController = getInsetsController();
+      wInsetsController.setAppearanceLightStatusBars(isDarkIcon);
+      if(statusDarkNavIcon.equals("null")){
+        wInsetsController.setAppearanceLightNavigationBars(isDarkIcon);
+      } else {
+        boolean isDarkNavIcon = statusDarkNavIcon.equals("active");
+        wInsetsController.setAppearanceLightNavigationBars(isDarkNavIcon);
+      }
+    });
   }
 
   public boolean isFullScreen() throws JSONException{

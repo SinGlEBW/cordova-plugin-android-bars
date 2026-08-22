@@ -1,11 +1,16 @@
 {
  "name": "cordova-plugin-android-bars",
- "version": "1.0.69",
+ "author": "SinGlEBW",
+ "version": "1.0.71",
  "description": "",
  "repository": {
-  "url": "git+https://github.com/SinGlEBW/cordova-plugin-android-bars.git",
+  "url": "https://github.com/SinGlEBW/cordova-plugin-android-bars.git",
   "type": "git"
  },
+ "bugs": {
+  "url": "https://github.com/SinGlEBW/cordova-plugin-android-bars/issues"
+ },
+ "homepage": "https://github.com/SinGlEBW/cordova-plugin-android-bars#readme",
  "scripts": {
   "pb": "git push && npm publish"
  },
@@ -23,6 +28,5 @@
   "plugin-android-bars",
   "android-bars"
  ],
- "author": "SinGlEBW",
  "license": "ISC"
 }

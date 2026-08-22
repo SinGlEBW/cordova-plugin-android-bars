@@ -79,6 +79,8 @@ let AndroidBars = {
   setActiveImmersiveMode: function (isMode) {
     exec(null, null, classInJava, "setActiveImmersiveMode", [isMode]);
   },
+
+  //watchKeyboard | watchAutoBottomHeight
   on: function (name, cb) {
     exec(cb, null, classInJava, "on", [name]);
   },
